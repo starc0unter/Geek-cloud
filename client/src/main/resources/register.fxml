@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="mainVBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefHeight="350.0" prefWidth="250.0" spacing="10" stylesheets="css/login.css"
+      xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.chentsov.client.controllers.RegisterController">
+
+    <HBox alignment="CENTER">
+        <ImageView>
+            <HBox.margin>
+                <Insets bottom="8.0" top="5.0"/>
+            </HBox.margin>
+            <Image url="@images/reg/newUser.png"/>
+        </ImageView>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <TextField fx:id="userField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                   minWidth="-Infinity" prefHeight="32.0" prefWidth="232.0" promptText="Username"
+                   GridPane.columnIndex="1"/>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <PasswordField fx:id="passwordField1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                       minWidth="-Infinity" prefHeight="32.0" prefWidth="232.0" promptText="Your password"
+                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <PasswordField fx:id="passwordField2" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                       minWidth="-Infinity" prefHeight="32.0" prefWidth="232.0" promptText="Retype your password"
+                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <Button fx:id="createUserButton" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity"
+                minHeight="-Infinity" minWidth="-Infinity" onAction="#tryCreateNewUser" prefHeight="32.0"
+                prefWidth="232.0" text="Create user"/>
+        <VBox.margin>
+            <Insets top="10.0"/>
+        </VBox.margin>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <Button fx:id="backToLoginButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                minWidth="-Infinity" onAction="#openLoginScene" prefHeight="32.0" prefWidth="232.0" text="Back"/>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <Label fx:id="infoLabel" text="Please enter credentials" textFill="#d7d2d2">
+            <HBox.margin>
+                <Insets top="5.0"/>
+            </HBox.margin>
+        </Label>
+    </HBox>
+
+</VBox>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="100.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.172-ea"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chentsov.client.controllers.ProgressController">
+    <children>
+        <ProgressBar fx:id="progressBar" layoutX="14.0" layoutY="63.0" prefHeight="25.0" prefWidth="273.0"
+                     progress="0.0"/>
+        <Label fx:id="infoLabel" layoutX="14.0" layoutY="14.0" prefHeight="39.0" prefWidth="273.0"/>
+    </children>
+</AnchorPane>

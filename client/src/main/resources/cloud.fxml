@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox fx:id="mainVBox" minHeight="500.0" minWidth="600.0" prefHeight="500.0" prefWidth="600.0"
+      stylesheets="css/cloud.css" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.chentsov.client.controllers.CloudController">
+
+    <MenuBar fx:id="menuBar" maxHeight="Infinity" maxWidth="Infinity">
+        <Menu fx:id="fileMenu" text="File">
+            <MenuItem onAction="#menuExit" text="Exit"/>
+            <MenuItem onAction="#logout" text="log out"/>
+        </Menu>
+    </MenuBar>
+
+    <HBox maxHeight="Infinity" maxWidth="Infinity" VBox.vgrow="ALWAYS">
+        <VBox maxWidth="Infinity" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER">
+                <Label text="Local storage">
+                    <font>
+                        <Font name="System Bold" size="14.0"/>
+                    </font>
+                </Label>
+            </HBox>
+            <TableView fx:id="localFilesTable" maxHeight="Infinity" VBox.vgrow="ALWAYS">
+                <placeholder>
+                    <ImageView>
+                        <Image url="@images/main/placeholder.png"/>
+                    </ImageView>
+                </placeholder>
+            </TableView>
+            <HBox HBox.hgrow="ALWAYS">
+                <Label fx:id="localCurrentPathLabel" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <HBox HBox.hgrow="ALWAYS">
+                <Button fx:id="sendButton" maxWidth="Infinity" onAction="#sendLocalFiles" text="Send"
+                        HBox.hgrow="ALWAYS"/>
+                <Button fx:id="localRefreshButton" maxWidth="Infinity" onAction="#refreshLocalFiles" text="Refresh"
+                        HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+        <VBox maxWidth="Infinity" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER">
+                <Label text="Cloud storage">
+                    <font>
+                        <Font name="System Bold" size="14.0"/>
+                    </font>
+                </Label>
+            </HBox>
+            <TableView fx:id="cloudFilesTable" maxHeight="Infinity" VBox.vgrow="ALWAYS">
+                <placeholder>
+                    <ImageView>
+                        <Image url="@images/main/placeholder.png"/>
+                    </ImageView>
+                </placeholder>
+            </TableView>
+            <HBox HBox.hgrow="ALWAYS">
+                <Label fx:id="cloudCurrentPathLabel" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <HBox HBox.hgrow="ALWAYS">
+                <Button fx:id="saveButton" maxWidth="Infinity" onAction="#requestCloudFile" text="Save"
+                        HBox.hgrow="ALWAYS"/>
+                <Button fx:id="cloudRefreshButton" maxWidth="Infinity" onAction="#refreshCloudFiles" text="Refresh"
+                        HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+        <VBox.margin>
+            <Insets bottom="1.0" left="1.0" right="1.0" top="1.0"/>
+        </VBox.margin>
+    </HBox>
+
+</VBox>

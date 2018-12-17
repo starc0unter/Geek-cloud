@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="mainVBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefHeight="350.0" prefWidth="250.0" spacing="10" stylesheets="css/login.css"
+      xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.chentsov.client.controllers.LoginController">
+
+    <HBox alignment="CENTER">
+        <ImageView fx:id="logoImage">
+            <HBox.margin>
+                <Insets bottom="10.0" top="10.0"/>
+            </HBox.margin>
+            <Image url="@images/auth/logo.png"/>
+        </ImageView>
+    </HBox>
+
+    <HBox alignment="CENTER_LEFT">
+        <ImageView fx:id="loginImage">
+            <Image url="@images/auth/login.png"/>
+        </ImageView>
+        <TextField fx:id="userField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                   minWidth="-Infinity" prefHeight="32.0" prefWidth="200.0" promptText="Username"
+                   GridPane.columnIndex="1"/>
+        <VBox.margin>
+            <Insets left="9.0"/>
+        </VBox.margin>
+    </HBox>
+
+    <HBox alignment="BOTTOM_LEFT">
+        <ImageView fx:id="passImage">
+            <Image url="@images/auth/pass.png"/>
+        </ImageView>
+        <PasswordField fx:id="passwordField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                       minWidth="-Infinity" prefHeight="32.0" prefWidth="200.0" promptText="Password"
+                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <VBox.margin>
+            <Insets left="9.0"/>
+        </VBox.margin>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <Button fx:id="authButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                onAction="#tryLoginAction" prefHeight="32.0" prefWidth="232.0" text="Login"/>
+        <VBox.margin>
+            <Insets top="10.0"/>
+        </VBox.margin>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <Button fx:id="registerButton" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity"
+                minHeight="-Infinity" minWidth="-Infinity" onAction="#openRegisterScene" prefHeight="32.0"
+                prefWidth="232.0" text="New user"/>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <Button fx:id="connectionSettingsButton" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity"
+                minHeight="-Infinity" minWidth="-Infinity" onAction="#openConnectionSettings" prefHeight="32.0"
+                prefWidth="232.0" text="Connection settings"/>
+    </HBox>
+
+    <HBox alignment="CENTER">
+        <Label fx:id="infoLabel" text="Please enter credentials" textFill="#d7d2d2">
+            <HBox.margin>
+                <Insets top="10.0"/>
+            </HBox.margin>
+        </Label>
+    </HBox>
+
+</VBox>

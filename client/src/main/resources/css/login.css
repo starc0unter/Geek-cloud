@@ -1,0 +1,19 @@
+.root {
+    -fx-background-image: url("../images/auth/wallpaper.jpg");
+}
+
+.label {
+    -fx-text-fill: black;
+}
+
+.button {
+    -fx-background-radius: 5;
+}
+
+.text-field {
+    -fx-background-radius: 5;
+}
+
+.password-field {
+    -fx-background-radius: 5;
+}

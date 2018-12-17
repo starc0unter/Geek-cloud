@@ -1,0 +1,5 @@
+/.idea/
+/out/
+*.mv.db
+*.iml
+*.trace.db
