@@ -14,9 +14,9 @@ public class TableContextMenu {
 
     private static final Logger logger = LogManager.getLogger(TableContextMenu.class.getSimpleName());
 
-    private TableView<FileItem> owner;
-    private MenuItem deleteItem;
-    private MenuItem renameItem;
+    private final TableView<FileItem> owner;
+    private final MenuItem deleteItem;
+    private final MenuItem renameItem;
 
     TableContextMenu(TableView<FileItem> owner) {
         this.owner = owner;

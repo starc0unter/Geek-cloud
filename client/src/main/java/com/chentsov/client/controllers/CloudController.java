@@ -31,15 +31,15 @@ import static com.chentsov.client.util.GUIHelper.*;
 public class CloudController extends AbstractController implements Initializable {
 
     private static final Logger logger = LogManager.getLogger(CloudController.class.getSimpleName());
+    private final static String PATH_TO_STORAGE = "client/local_storage";
 
-    private String pathToStorage = "client/local_storage";
-    private String currentLocalPath = pathToStorage;
+    private String currentLocalPath = PATH_TO_STORAGE;
     private String currentCloudPath = "";
 
-    private ObservableList<FileItem> localFiles = FXCollections.observableArrayList();
-    private ObservableList<FileItem> cloudFiles = FXCollections.observableArrayList();
+    private final ObservableList<FileItem> localFiles = FXCollections.observableArrayList();
+    private final ObservableList<FileItem> cloudFiles = FXCollections.observableArrayList();
     //a map that contains parts of different downloaded parts. When all the parts are downloaded, they are to be merged
-    private Map<Path, FileParts> fileParts = new HashMap<>();
+    private final Map<Path, FileParts> fileParts = new HashMap<>();
 
     private WatcherService watcherService;
 
@@ -150,16 +150,7 @@ public class CloudController extends AbstractController implements Initializable
             while (true) {
                 AbstractMessage am = connection.readObject();
                 if (am instanceof FileListResponse) {
-                    logger.info("Received FileList");
-                    cloudFiles.clear();
-                    cloudFiles.addAll(((FileListResponse) am).getCloudFilesList());
-                    if (Platform.isFxApplicationThread()) {
-                        cloudFilesTable.setItems(cloudFiles);
-                        cloudCurrentPathLabel.setText(currentCloudPath);
-                    } else Platform.runLater(() -> {
-                        cloudFilesTable.setItems(cloudFiles);
-                        cloudCurrentPathLabel.setText(currentCloudPath);
-                    });
+                    processFileList((FileListResponse) am);
                 } else if (am instanceof FileMessage) {
                     logger.info("Received FileMessage");
                     FileMessage fm = (FileMessage) am;
@@ -174,6 +165,19 @@ public class CloudController extends AbstractController implements Initializable
             logger.info("Closing connection");
             Connection.close();
         }
+    }
+
+    private void processFileList(FileListResponse am) {
+        logger.info("Received FileList");
+        cloudFiles.clear();
+        cloudFiles.addAll(am.cloudFilesList);
+        if (Platform.isFxApplicationThread()) {
+            cloudFilesTable.setItems(cloudFiles);
+            cloudCurrentPathLabel.setText(currentCloudPath);
+        } else Platform.runLater(() -> {
+            cloudFilesTable.setItems(cloudFiles);
+            cloudCurrentPathLabel.setText(currentCloudPath);
+        });
     }
 
     /**
@@ -195,12 +199,12 @@ public class CloudController extends AbstractController implements Initializable
      */
     public void refreshLocalFiles() {
         if (Platform.isFxApplicationThread()) {
-            boolean isRoot = Paths.get(currentLocalPath).equals(Paths.get(pathToStorage));
+            boolean isRoot = Paths.get(currentLocalPath).equals(Paths.get(PATH_TO_STORAGE));
             FileItem.refreshFileList(localFiles, currentLocalPath, isRoot);
             localFilesTable.setItems(localFiles);
         } else {
             Platform.runLater(() -> {
-                boolean isRoot = Paths.get(currentLocalPath).equals(Paths.get(pathToStorage));
+                boolean isRoot = Paths.get(currentLocalPath).equals(Paths.get(PATH_TO_STORAGE));
                 FileItem.refreshFileList(localFiles, currentLocalPath, isRoot);
                 localFilesTable.setItems(localFiles);
             });

@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class UsersDAO implements DAO {
 
-    private Session session;
+    private final Session session;
 
     public UsersDAO(Session session) {
         this.session = session;

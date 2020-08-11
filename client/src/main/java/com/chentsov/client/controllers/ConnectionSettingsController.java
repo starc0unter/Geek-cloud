@@ -76,7 +76,7 @@ public class ConnectionSettingsController extends AbstractController {
      *
      * @param parentControllerClass a parent class that opens the window
      */
-    static void showConnectionSettings(Class parentControllerClass) {
+    static void showConnectionSettings(Class<?> parentControllerClass) {
         Parent root;
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();

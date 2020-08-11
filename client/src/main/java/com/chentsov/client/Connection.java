@@ -19,9 +19,9 @@ public class Connection {
 
     private static Connection connection;
 
-    private Socket socket;
-    private ObjectEncoderOutputStream out;
-    private ObjectDecoderInputStream in;
+    private final Socket socket;
+    private final ObjectEncoderOutputStream out;
+    private final ObjectDecoderInputStream in;
 
     private static int port = 8189;
     private static String address = "127.0.0.1";
@@ -81,17 +81,13 @@ public class Connection {
      * Sends message from client to server
      *
      * @param msg a message to be sent
-     * @return true in case of success; false otherwise
      */
-    @SuppressWarnings("all")
-    public boolean sendMsg(AbstractMessage msg) {
+    public void sendMsg(AbstractMessage msg) {
         try {
             out.writeObject(msg);
             out.flush();
-            return true;
         } catch (IOException e) {
             logger.warn("Send message failed");
-            return false;
         }
     }
 

@@ -23,31 +23,22 @@ public class LoginController extends AbstractController {
 
     @FXML
     VBox mainVBox;
-
     @FXML
     Label infoLabel;
-
     @FXML
     TextField userField;
-
     @FXML
     PasswordField passwordField;
-
     @FXML
     Button registerButton;
-
     @FXML
     Button authButton;
-
     @FXML
     ImageView logoImage;
-
     @FXML
     ImageView loginImage;
-
     @FXML
     ImageView passImage;
-
     @FXML
     Button connectionSettingsButton;
 
@@ -99,11 +90,11 @@ public class LoginController extends AbstractController {
             while (true) {
                 AbstractMessage am = connection.readObject();
                 if (am instanceof AuthResponse) {
-                    if (((AuthResponse) am).isSuccess()) {
+                    if (((AuthResponse) am).success) {
                         CloudController controller = (CloudController) GUIHelper.changeScene((Stage) mainVBox.getScene().getWindow(),
                                 getClass().getResource("/cloud.fxml"), 800, 600, true);
                         //setting cloud storage path
-                        Objects.requireNonNull(controller).setCurrentCloudPath(((AuthResponse) am).getPathToStorage());
+                        Objects.requireNonNull(controller).setCurrentCloudPath(((AuthResponse) am).pathToStorage);
                     } else infoLabel.setText("Wrong username or password");
                     resetFields();
                     break;

@@ -11,6 +11,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -25,42 +26,45 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LogManager.getLogger(AuthHandler.class.getSimpleName());
 
     private static final String ROOT_PATH = "server/cloud_storage/";
-    private DBService dbService = DBService.getInstance();
+    private final DBService dbService = DBService.getInstance();
 
     public AuthHandler() {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext context, Object msg) throws Exception {
         try {
             if (msg == null) return;
 
             if (msg instanceof AuthRequest) {
-                AuthRequest ar = (AuthRequest) msg;
-                logger.info("Auth request received from " + ar.getLogin());
-                String pathToStorage = ROOT_PATH + ar.getLogin();
-                Files.createDirectories(Paths.get(pathToStorage));
-
-                if (!ar.isNewUser()) {
-                    logger.info("Authorizing user: " + ar.getLogin());
-                    boolean isAuthorized = checkCredentials(ar.getLogin(), ar.getPassword());
-                    ctx.writeAndFlush(new AuthResponse(isAuthorized, pathToStorage));
-                    //if auth is successful, add the main request processor
-                    if (isAuthorized) {
-                        ctx.pipeline().addLast(new MainHandler(pathToStorage));
-                        logger.info("Auth complete: " + ar.getLogin());
-                    }
-                } else {
-                    logger.info("Creating new user: " + ar.getLogin());
-                    String salt = HashHelper.generateSalt();
-                    boolean userCreated = dbService.addUser(ar.getLogin(), getPasswordHash(ar.getPassword(), salt), salt);
-                    ctx.writeAndFlush(new AuthResponse(userCreated));
-                }
-            } else {
-                ctx.fireChannelRead(msg);
+                processAuth(context, (AuthRequest) msg);
+                return;
             }
+            context.fireChannelRead(msg);
         } finally {
             ReferenceCountUtil.release(msg);
+        }
+    }
+
+    private void processAuth(ChannelHandlerContext context, AuthRequest msg) throws IOException {
+        logger.info("Auth request received from " + msg.login);
+        String pathToStorage = ROOT_PATH + msg.login;
+        Files.createDirectories(Paths.get(pathToStorage));
+
+        if (!msg.isNewUser) {
+            logger.info("Authorizing user: " + msg.login);
+            boolean isAuthorized = checkCredentials(msg.login, msg.password);
+            context.writeAndFlush(new AuthResponse(isAuthorized, pathToStorage));
+            //if auth is successful, add the main request processor
+            if (isAuthorized) {
+                context.pipeline().addLast(new MainHandler(pathToStorage));
+                logger.info("Auth complete: " + msg.login);
+            }
+        } else {
+            logger.info("Creating new user: " + msg.login);
+            String salt = HashHelper.generateSalt();
+            boolean userCreated = dbService.addUser(msg.login, getPasswordHash(msg.password, salt), salt);
+            context.writeAndFlush(new AuthResponse(userCreated));
         }
     }
 
@@ -80,13 +84,13 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        ctx.flush();
+    public void channelReadComplete(ChannelHandlerContext context) {
+        context.flush();
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        ctx.close();
+    public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
+        context.close();
     }
 
 }

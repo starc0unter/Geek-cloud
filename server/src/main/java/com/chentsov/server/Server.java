@@ -18,7 +18,7 @@ public class Server {
 
     private static final int PORT = 8189;
     private static final int MAX_OBJ_SIZE = 1024 * 1024 * 100; // 100Mb
-    private DBService dbService = DBService.getInstance();
+    private final DBService dbService = DBService.getInstance();
 
     public Server() {
     }
@@ -28,11 +28,11 @@ public class Server {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(mainGroup, workerGroup)
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap.group(mainGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        protected void initChannel(SocketChannel socketChannel) {
                             socketChannel.pipeline().addLast(
                                     new ObjectDecoder(MAX_OBJ_SIZE, ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
@@ -43,7 +43,7 @@ public class Server {
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .option(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
-            ChannelFuture future = b.bind(PORT).sync();
+            ChannelFuture future = serverBootstrap.bind(PORT).sync();
             future.channel().closeFuture().sync();
         } finally {
             mainGroup.shutdownGracefully();

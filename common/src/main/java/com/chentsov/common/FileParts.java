@@ -11,8 +11,8 @@ import java.util.*;
  */
 public class FileParts {
 
-    private int nextPart;                           //next part to be written on disk;
-    private Map<Integer, FileMessage> parts;        //key: part number; value: message containing data part
+    private int nextPart;                                   //next part to be written on disk;
+    private final Map<Integer, FileMessage> parts;          //key: part number; value: message containing data part
 
     public int getNextPart() {
         return nextPart;

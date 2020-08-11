@@ -1,18 +1,19 @@
 package com.chentsov.common.messages.requests;
 
-        import com.chentsov.common.messages.AbstractMessage;
+import com.chentsov.common.messages.AbstractMessage;
 
-        import java.util.List;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Evgenii Chentsov
  * <p>
  * A message that represents a cloud file request
  */
-public class FileRequest extends AbstractMessage {
+public final class FileRequest extends AbstractMessage {
 
-    private String destinationPath;
-    private List<String> stringPaths;
+    public final String destinationPath;
+    private final List<String> stringPaths;
 
     public List<String> getStringPaths() {
         return stringPaths;
@@ -23,7 +24,7 @@ public class FileRequest extends AbstractMessage {
     }
 
     public FileRequest(List<String> stringPaths, String destinationPath) {
-        this.stringPaths = stringPaths;
+        this.stringPaths = Collections.unmodifiableList(stringPaths);
         this.destinationPath = destinationPath;
     }
 

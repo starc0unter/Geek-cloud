@@ -13,35 +13,28 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class RegisterController extends AbstractController {
 
     @FXML
     VBox mainVBox;
-
     @FXML
     Label infoLabel;
-
     @FXML
     TextField userField;
-
     @FXML
     PasswordField passwordField1;
-
     @FXML
     PasswordField passwordField2;
-
     @FXML
     Button createUserButton;
-
     @FXML
     Button backToLoginButton;
 
+    @SuppressWarnings("FieldCanBeLocal")
     private Connection connection;
 
     /**
@@ -75,7 +68,7 @@ public class RegisterController extends AbstractController {
             while (true) {
                 AbstractMessage am = connection.readObject();
                 if (am instanceof AuthResponse) {
-                    if (((AuthResponse) am).isSuccess()) {
+                    if (((AuthResponse) am).success) {
                         Alert alert = new Alert(Alert.AlertType.NONE, "User successfully created", ButtonType.OK);
                         alert.showAndWait();
                         openLoginScene();

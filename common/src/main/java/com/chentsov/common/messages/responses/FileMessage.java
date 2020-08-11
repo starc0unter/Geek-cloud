@@ -28,13 +28,13 @@ public class FileMessage extends AbstractMessage {
     private static final int MAX_FILE_SIZE = 1024 * 1024 * 5; // 5 mb
 
     //final destination path is destination + relativePath
-    private String destination;
-    private String relativePath;
+    private final String destination;
+    private final String relativePath;
     private byte[] data;
     //in case of several parts starts from 1 to (totalParts)
     private int part;
     //in case of several parts shows total amount of file parts
-    private int totalParts;
+    private final int totalParts;
 
     /**
      * Creates a FileMessage instance
@@ -98,51 +98,63 @@ public class FileMessage extends AbstractMessage {
                 logger.info("Sending " + filePath.toString());
 
                 if (Files.isDirectory(filePath)) {
-                    FileMessage fm = new FileMessage(relativePath, destination, 1);
-                    fm.setDataPart(new byte[0], 1);
-                    consumer.accept(fm);
+                    FileMessage message = new FileMessage(relativePath, destination, 1);
+                    message.setDataPart(new byte[0], 1);
+                    consumer.accept(message);
                     logger.info("Sent empty folder: " + filePath.toString());
                     continue;
                 }
 
                 final long actualFileSize = Files.size(filePath);
-                try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filePath.toString()))) {
-                    boolean strictlyEqual = (int) actualFileSize % MAX_FILE_SIZE == 0;
-                    int totalParts = (int) actualFileSize / MAX_FILE_SIZE;
-                    if (!strictlyEqual) totalParts++;
-                    //selecting initial data array size
-                    byte[] part = totalParts > 1 ? new byte[MAX_FILE_SIZE] : new byte[(int) actualFileSize];
-                    int bytesRead;
-                    int currentPart = 1;
-
-                    /*
-                    !!!PLEASE READ THIS CAREFULLY!!!
-                    A tricky part!
-                    For the small file (1 part) we utilize a single part[] array. If there are more parts, we apply a method
-                    that does not send garbage data over network. Let us suppose that a file contains of N parts. Then, we send
-                    (N-1) parts with the array length of [maxFileSize], and the last part is truncated so no garbage is
-                    sent. The price is not that big - just a single creation of a new byte array for the final message.
-                     */
-                    FileMessage fm = new FileMessage(relativePath, destination, totalParts);
-                    while ((bytesRead = bis.read(part)) > 0) {
-                        //preparing final data part
-                        if (bytesRead < part.length) part = Arrays.copyOfRange(part, 0, bytesRead);
-                        fm.setDataPart(part, currentPart);
-                        logger.info("Sending data part N " + fm.getPart() + " of " + fm.getTotalParts() + ", size is " +
-                                fm.getData().length);
-                        currentPart++;
-                        consumer.accept(fm);
-
-                        if (progressBar != null) {
-                            progressBar.setProgress(((double) ++allFilesCompleted) / allFilesRequired);
-                        }
-                        logger.info("message sent");
-                    }
-                }
+                allFilesCompleted = sendSingle(destination, consumer, progressBar, allFilesRequired, allFilesCompleted, filePath, relativePath, (int) actualFileSize);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static int sendSingle(String destination,
+                                  Consumer<FileMessage> consumer,
+                                  ProgressBar progressBar,
+                                  int allFilesRequired,
+                                  int allFilesCompleted,
+                                  Path filePath,
+                                  String relativePath,
+                                  int actualFileSize) throws IOException {
+        try (BufferedInputStream stream = new BufferedInputStream(new FileInputStream(filePath.toString()))) {
+            boolean strictlyEqual = actualFileSize % MAX_FILE_SIZE == 0;
+            int totalParts = actualFileSize / MAX_FILE_SIZE;
+            if (!strictlyEqual) totalParts++;
+            //selecting initial data array size
+            byte[] part = totalParts > 1 ? new byte[MAX_FILE_SIZE] : new byte[actualFileSize];
+            int bytesRead;
+            int currentPart = 1;
+
+            /*
+            !!!PLEASE READ THIS CAREFULLY!!!
+            A tricky part!
+            For the small file (1 part) we utilize a single part[] array. If there are more parts, we apply a method
+            that does not send garbage data over network. Let us suppose that a file contains of N parts. Then, we send
+            (N-1) parts with the array length of [maxFileSize], and the last part is truncated so no garbage is
+            sent. The price is not that big - just a single creation of a new byte array for the final message.
+             */
+            FileMessage fm = new FileMessage(relativePath, destination, totalParts);
+            while ((bytesRead = stream.read(part)) > 0) {
+                //preparing final data part
+                if (bytesRead < part.length) part = Arrays.copyOfRange(part, 0, bytesRead);
+                fm.setDataPart(part, currentPart);
+                logger.info("Sending data part N " + fm.getPart() + " of " + fm.getTotalParts() + ", size is " +
+                        fm.getData().length);
+                currentPart++;
+                consumer.accept(fm);
+
+                if (progressBar != null) {
+                    progressBar.setProgress(((double) ++allFilesCompleted) / allFilesRequired);
+                }
+                logger.info("message sent");
+            }
+        }
+        return allFilesCompleted;
     }
 
     /**
@@ -153,17 +165,24 @@ public class FileMessage extends AbstractMessage {
      * @param operation an operation that run when the file is successfully written
      * @throws IOException when i/o errors occur
      */
-    public static void receive(FileMessage fm, Map<Path, FileParts> fileParts, Runnable operation) throws IOException {
-        Path destination = Paths.get(fm.destination + File.separator + fm.getRelativePath());
-        if (fm.getTotalParts() > 1) {
-            logger.info("Receiving large file: " + destination + ", part N " + fm.getPart() + " of " + fm.getTotalParts()
-                    + ", size is " + fm.getData().length);
-            if (!fileParts.containsKey(destination)) {
-                fileParts.put(destination, new FileParts());
-                if (!Files.exists(destination.getParent())) Files.createDirectories(destination.getParent());
-                Files.deleteIfExists(destination);
-                Files.createFile(destination);
-            }
+    public static void receive(FileMessage message, Map<Path, FileParts> fileParts, Runnable operation) throws IOException {
+        Path destination = Paths.get(message.destination + File.separator + message.getRelativePath());
+        if (message.getTotalParts() <= 1) {
+            processSmallFile(message, operation, destination);
+            return;
+        }
+        processLargeFile(message, fileParts, operation, destination);
+    }
+
+    private static void processLargeFile(FileMessage message, Map<Path, FileParts> fileParts, Runnable operation, Path destination) throws IOException {
+        logger.info("Receiving large file: " + destination + ", part N " + message.getPart() + " of " + message.getTotalParts()
+                + ", size is " + message.getData().length);
+        if (!fileParts.containsKey(destination)) {
+            fileParts.put(destination, new FileParts());
+            if (!Files.exists(destination.getParent())) Files.createDirectories(destination.getParent());
+            Files.deleteIfExists(destination);
+            Files.createFile(destination);
+        }
 
             /*
             !!!PLEASE READ THIS CAREFULLY #2!!!
@@ -181,30 +200,31 @@ public class FileMessage extends AbstractMessage {
              As a result, we neither create any RandomAccessFile instances nor occupy RAM heavily.
              */
 
-            FileParts parts = fileParts.get(destination);
-            parts.addPart(fm);
+        FileParts parts = fileParts.get(destination);
+        parts.addPart(message);
 
-            FileMessage currentPart;
-            //while instance of FileParts contains next part we write it down,
-            //otherwise we wait for the required part and store unwritten parts in RAM
-            while ((currentPart = parts.removeAndIncrement()) != null) {
-                Files.write(destination, currentPart.getData(), StandardOpenOption.APPEND);
-            }
+        FileMessage currentPart;
+        //while instance of FileParts contains next part we write it down,
+        //otherwise we wait for the required part and store unwritten parts in RAM
+        while ((currentPart = parts.removeAndIncrement()) != null) {
+            Files.write(destination, currentPart.getData(), StandardOpenOption.APPEND);
+        }
 
-            if (parts.getNextPart() > fm.getTotalParts()) {
-                logger.info("File successfully assembled: " + fm.getDestination());
-                fileParts.clear();
-                operation.run();
-            }
-        } else {
-            logger.info("Receiving small file or folder: " + fm.getDestination());
-            if (fm.getData().length == 0) Files.createDirectories(destination);
-            else {
-                Files.createDirectories(destination.getParent());
-                Files.write(destination, fm.getData(), StandardOpenOption.CREATE);
-            }
+        if (parts.getNextPart() > message.getTotalParts()) {
+            logger.info("File successfully assembled: " + message.getDestination());
+            fileParts.clear();
             operation.run();
         }
+    }
+
+    private static void processSmallFile(FileMessage message, Runnable operation, Path destination) throws IOException {
+        logger.info("Receiving small file or folder: " + message.getDestination());
+        if (message.getData().length == 0) Files.createDirectories(destination);
+        else {
+            Files.createDirectories(destination.getParent());
+            Files.write(destination, message.getData(), StandardOpenOption.CREATE);
+        }
+        operation.run();
     }
 
     /**
