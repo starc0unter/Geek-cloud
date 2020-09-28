@@ -47,12 +47,12 @@ import java.util.stream.Collectors;
 public class GUIHelper {
 
     private static final Logger logger = LogManager.getLogger(GUIHelper.class.getSimpleName());
-    private static Map<String, Image> iconCache = new WeakHashMap<>();
+    private static final Map<String, Image> iconCache = new WeakHashMap<>();
 
     private static CloudController controller;
     private static Connection connection;
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     /**
      * Prepares GUI for the main stage
@@ -138,12 +138,11 @@ public class GUIHelper {
                 if (event.getGestureSource() == cloudTable) {
                     logger.info("Gesture source is the cloud table");
                     controller.requestCloudFile();
-                    controller.refreshLocalFiles();
                 } else {
                     logger.info("Gesture source is outside the app");
                     copyFilesFromDragBoard(db, controller.getCurrentLocalPath());
-                    controller.refreshLocalFiles();
                 }
+                controller.refreshLocalFiles();
                 success = true;
             }
 
@@ -161,38 +160,39 @@ public class GUIHelper {
     private static void setupCloudDnD(TableView<FileItem> localTable, TableView<FileItem> cloudTable) {
         cloudTable.setOnDragDetected(event -> setupSetOnDragDetected(cloudTable, event, TransferMode.LINK));
         cloudTable.setOnDragOver(event -> setupSetOnDragOverDetected(cloudTable, event));
+        cloudTable.setOnDragDropped(event -> processDragAndDrop(localTable, event));
+    }
 
-        cloudTable.setOnDragDropped(event -> {
-            Dragboard db = event.getDragboard();
-            boolean success = false;
-            if (db.hasFiles()) {
-                if (event.getGestureSource() == localTable) {
-                    logger.info("Gesture source is the local table");
-                    controller.sendLocalFiles();
-                } else {
-                    logger.info("Gesture source is outside the app");
-                    List<Path> filePaths = new ArrayList<>();
-                    String source = db.getFiles().get(0).getParent();
-                    try {
-                        for (File file : db.getFiles()) {
-                            filePaths.addAll(Files.walk(file.toPath()).collect(Collectors.toList()));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+    private static void processDragAndDrop(TableView<FileItem> localTable, DragEvent event) {
+        Dragboard db = event.getDragboard();
+        boolean success = false;
+        if (db.hasFiles()) {
+            if (event.getGestureSource() == localTable) {
+                logger.info("Gesture source is the local table");
+                controller.sendLocalFiles();
+            } else {
+                logger.info("Gesture source is outside the app");
+                List<Path> filePaths = new ArrayList<>();
+                String source = db.getFiles().get(0).getParent();
+                try {
+                    for (File file : db.getFiles()) {
+                        filePaths.addAll(Files.walk(file.toPath()).collect(Collectors.toList()));
                     }
-                    ProgressController pc = ProgressController.showProgressStage(CloudController.class);
-                    new Thread(() -> {
-                        FileMessage.send(filePaths, source, controller.getCurrentCloudPath(),
-                                connection::sendMsg, Objects.requireNonNull(pc).getProgressBar());
-                        pc.close();
-                    }).start();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                success = true;
+                ProgressController pc = ProgressController.showProgressStage(CloudController.class);
+                new Thread(() -> {
+                    FileMessage.send(filePaths, source, controller.getCurrentCloudPath(),
+                            connection::sendMsg, Objects.requireNonNull(pc).getProgressBar());
+                    pc.close();
+                }).start();
             }
+            success = true;
+        }
 
-            event.setDropCompleted(success);
-            event.consume();
-        });
+        event.setDropCompleted(success);
+        event.consume();
     }
 
     /**
@@ -232,15 +232,15 @@ public class GUIHelper {
     /**
      * Copies files from dragBoard to local path
      *
-     * @param db   a dragBoard that holds files
+     * @param board   a dragBoard that holds files
      * @param path a destination to copy to
      */
-    private static void copyFilesFromDragBoard(Dragboard db, String path) {
+    private static void copyFilesFromDragBoard(Dragboard board, String path) {
         List<Path> filePaths = new ArrayList<>();
-        String rootPath = db.getFiles().get(0).getParent();
+        String rootPath = board.getFiles().get(0).getParent();
         try {
             //getting all files in folders
-            for (File file : db.getFiles()) {
+            for (File file : board.getFiles()) {
                 filePaths.addAll(Files.walk(file.toPath()).collect(Collectors.toList()));
             }
             //getting relative path and putting it into the current folder
@@ -352,7 +352,7 @@ public class GUIHelper {
                     private String getStringDate(FileItem item) {
                         String date = "";
                         if (item.isRootDir()) return date;
-                        return sdf.format(item.getDate());
+                        return dateFormat.format(item.getDate());
                     }
                 };
             }
@@ -408,10 +408,10 @@ public class GUIHelper {
             @Override
             public TableCell<FileItem, FileItem> call(TableColumn<FileItem, FileItem> param) {
                 return new TableCell<FileItem, FileItem>() {
-                    private HBox hBox = new HBox();
+                    private final HBox hBox = new HBox();
                     private ImageView icon;
-                    private Label nameLabel = new Label();
-                    private TextField editNameField = new TextField();
+                    private final Label nameLabel = new Label();
+                    private final TextField editNameField = new TextField();
                     private FileItem item;
 
                     {

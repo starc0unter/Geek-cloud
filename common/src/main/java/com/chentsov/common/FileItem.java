@@ -20,7 +20,7 @@ public class FileItem implements Serializable {
     private String stringPath;
     private boolean isRootDir = false;
     private boolean isParentDir = false;
-    private boolean isDir;
+    private final boolean isDir;
 
     public String getName() {
         return name;

@@ -54,7 +54,7 @@ public class WatcherService {
     private WatchService watcher;
     private final Map<WatchKey, Path> keys;
     private boolean trace = false;
-    private CloudController controller;
+    private final CloudController controller;
     private ExecutorService executor;
 
     /**

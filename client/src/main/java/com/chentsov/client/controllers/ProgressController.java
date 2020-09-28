@@ -21,7 +21,6 @@ public class ProgressController extends AbstractController implements Initializa
 
     @FXML
     ProgressBar progressBar;
-
     @FXML
     Label infoLabel;
 
@@ -50,7 +49,7 @@ public class ProgressController extends AbstractController implements Initializa
      * @param parentControllerClass a parent class that opens the window
      * @return a ProgressController instance
      */
-    public static ProgressController showProgressStage(Class parentControllerClass) {
+    public static ProgressController showProgressStage(Class<?> parentControllerClass) {
         Parent root;
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();

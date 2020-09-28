@@ -7,12 +7,8 @@ import com.chentsov.common.messages.AbstractMessage;
  * <p>
  * A message that represents cloud file list request.
  */
-public class FileListRequest extends AbstractMessage {
-    private String currentCloudPath;
-
-    public String getCurrentCloudPath() {
-        return currentCloudPath;
-    }
+public final class FileListRequest extends AbstractMessage {
+    public final String currentCloudPath;
 
     public FileListRequest(String currentCloudPath) {
         this.currentCloudPath = currentCloudPath;
